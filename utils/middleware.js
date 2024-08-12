@@ -47,21 +47,18 @@ const userExtractor = async (request, response, next) => {
   const token = getTokenFrom(request);
 
   if (!token) {
-    console.log('otken missimg');
     return response.status(401).json({ error: 'token missimg' });
   }
 
   try {
     const decodedToken = jwt.verify(token, process.env.SECRET);
     if (!decodedToken.id) {
-      console.log('otken invalid');
       return response.status(401).json({ error: 'token invalid' });
     }
 
     const user = await User.findById(decodedToken.id);
 
     if (!user) {
-      console.log('user nor foun');
       return response.status(401).json({ error: 'user not found' });
     }
 

@@ -7,7 +7,7 @@ const newsSchema = new mongoose.Schema(
       required: true,
     },
     description: {
-      type: Text,
+      type: String,
       required: true,
     },
     author: {
@@ -15,7 +15,7 @@ const newsSchema = new mongoose.Schema(
       required: true,
     },
     content: {
-      type: Text,
+      type: String,
       required: true,
     },
     image: {

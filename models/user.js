@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const userSchema = mongoose.Schema(
   {
-    admin: {
+    isAdmin: {
       type: Boolean,
       default: false,
     },
