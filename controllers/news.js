@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const News = require('../models/news');
+const Comment = require('../models/comment');
 const { userExtractor } = require('../utils/middleware');
 const logger = require('../utils/logger');
 
@@ -30,7 +31,14 @@ router.get('/', async (request, response) => {
 
 //GET ONE NEWS
 router.get('/:id', async (request, response) => {
-  const news = await News.findById(request.params.id);
+  const news = await News.findById(request.params.id).populate({
+    path: 'comments',
+    select: 'content likes user',
+    populate: {
+      path: 'user',
+      select: 'username email',
+    },
+  });
   if (!news) {
     return response.status(404).json({ error: 'news not found' });
   }
@@ -52,6 +60,32 @@ router.post('/', userExtractor, async (request, response) => {
   }
 
   const body = request.body;
+
+  if (
+    !body.title ||
+    !body.description ||
+    !body.content ||
+    !body.author ||
+    !body.image
+  ) {
+    return response.status(400).json({ error: 'all fields are required' });
+  }
+  const categorias = [
+    'cultura',
+    'moda',
+    'esporte',
+    'arte',
+    'politica',
+    'natureza',
+    'saude',
+    'ciencia',
+    'entretenimento',
+  ];
+
+  if (body.category && !categorias.includes(body.category)) {
+    return response.status(400).json({ error: 'invalid category' });
+  }
+
   const news = new News({
     title: body.title,
     description: body.description,
@@ -98,7 +132,7 @@ router.put('/:id', userExtractor, async (request, response) => {
   response.status(201).json(updatedNews);
 });
 
-//DELETE NEWS
+// DELETE NEWS
 router.delete('/:id', userExtractor, async (request, response) => {
   const user = request.user;
   if (!user) {
@@ -111,9 +145,23 @@ router.delete('/:id', userExtractor, async (request, response) => {
       .json({ error: 'you are not allowed to do that' });
   }
 
-  await News.findByIdAndRemove(request.params.id);
-  logger.info(`news ${request.params.id} deleted`);
-  response.status(204).end();
+  try {
+    const news = await News.findById(request.params.id);
+
+    if (!news) {
+      return response.status(404).json({ error: 'news not found' });
+    }
+
+    await Comment.deleteMany({ _id: { $in: news.comments } });
+
+    await News.findByIdAndDelete(request.params.id);
+
+    logger.info(`news ${request.params.id} and associated comments deleted`);
+    response.status(204).end();
+  } catch (error) {
+    logger.error(error.message);
+    response.status(500).json({ error: error.message });
+  }
 });
 
 //GET ALL NEWS BY USER

@@ -1,43 +1,21 @@
 const router = require('express').Router();
 const Comment = require('../models/comment');
+const News = require('../models/news');
 const { userExtractor } = require('../utils/middleware');
 const logger = require('../utils/logger');
 
-//GET ALL COMMENTS WHIT PAGINATION
-router.get('/', async (request, response) => {
+//GET ALL COMMENT BY NEWS ID AND PAGINATION
+router.get('/news/:id', async (request, response) => {
   const { page = 1, limit = 10 } = request.query;
 
   try {
-    const comments = await Comment.find({})
+    const comments = await Comment.find({ news: request.params.id })
       .populate('user', { username: 1, email: 1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
 
-    const count = await Comment.countDocuments();
-
-    response.json({
-      comments,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page,
-    });
-  } catch (error) {
-    response.status(500).json({ error: error.message });
-  }
-});
-
-//GET COMMENT POST BY ID AND PAGINATION
-router.get('/post/:id', async (request, response) => {
-  const { page = 1, limit = 10 } = request.query;
-
-  try {
-    const comments = await Comment.find({ post: request.params.id })
-      .populate('user', { username: 1, email: 1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .sort({ createdAt: -1 });
-
-    const count = await Comment.countDocuments({ post: request.params.id });
+    const count = await Comment.countDocuments({ news: request.params.id });
 
     response.status(200).json({
       comments,
@@ -60,9 +38,15 @@ router.post('/', userExtractor, async (request, response) => {
     const comment = new Comment({
       content: body.content,
       user: user._id,
-      post: body.post,
+      news: body.news,
     });
     const savedComment = await comment.save();
+    const news = await News.findById(body.news);
+    if (!news) {
+      return response.status(404).json({ error: 'news not found' });
+    }
+    news.comments.push(savedComment._id);
+    await news.save();
     logger.info(`comment ${body.content} created`);
     response.status(201).json(savedComment);
   } catch (error) {
