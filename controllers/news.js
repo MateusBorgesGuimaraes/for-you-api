@@ -201,4 +201,54 @@ router.get('/category/:category', async (request, response) => {
   }
 });
 
+// GET CUSTOMIZED NEWS LIST
+router.get('/custom', async (request, response) => {
+  try {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    // 5 most relevant news of the last week based on likes, comments, and views
+    const mostRelevantNews = await News.find({
+      createdAt: { $gte: oneWeekAgo },
+    })
+      .sort({ likes: -1, comments: -1, views: -1 })
+      .limit(5)
+      .populate('user', { username: 1, email: 1 });
+
+    // 5 most recent news
+    const mostRecentNews = await News.find({})
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('user', { username: 1, email: 1 });
+
+    // The last exclusive news
+    const lastExclusiveNews = await News.findOne({ exclusive: true })
+      .sort({ createdAt: -1 })
+      .populate('user', { username: 1, email: 1 });
+
+    // 2 random news from the category 'esporte'
+    const randomEsporteNews = await News.aggregate([
+      { $match: { category: 'esporte' } },
+      { $sample: { size: 2 } },
+    ]);
+
+    // 2 random news from the category 'moda'
+    const randomModaNews = await News.aggregate([
+      { $match: { category: 'moda' } },
+      { $sample: { size: 2 } },
+    ]);
+
+    response.status(200).json({
+      mostRelevantNews,
+      mostRecentNews,
+      lastExclusiveNews,
+      randomEsporteNews,
+      randomModaNews,
+    });
+  } catch (error) {
+    logger.error(error.message);
+    response.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

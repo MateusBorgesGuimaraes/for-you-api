@@ -22,6 +22,10 @@ const newsSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    exclusive: {
+      type: Boolean,
+      default: false,
+    },
     category: {
       type: String,
       enum: [
