@@ -6,8 +6,8 @@ const { userExtractor } = require('../utils/middleware');
 const logger = require('../utils/logger');
 const config = require('../utils/config');
 
-//GET  USER LOGIN token
-router.get('/', async (request, response) => {
+//POST  USER LOGIN token
+router.post('/', async (request, response) => {
   const { username, password } = request.body;
   if (!username || !password) {
     return response.status(400).json({ error: 'username or password missing' });
