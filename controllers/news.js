@@ -10,7 +10,6 @@ router.get('/custom', async (request, response) => {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-    // 5 most relevant news of the last week based on likes, comments, and views
     const mostRelevantNews = await News.find({
       createdAt: { $gte: oneWeekAgo },
     }).populate('user', { username: 1, email: 1 });
@@ -20,32 +19,28 @@ router.get('/custom', async (request, response) => {
         (a.likes?.length || 0) + (a.comments?.length || 0) + a.views;
       const scoreB =
         (b.likes?.length || 0) + (b.comments?.length || 0) + b.views;
-      return scoreB - scoreA; // Ordenação decrescente
+      return scoreB - scoreA;
     });
 
     const limitedRelevantNews = mostRelevantNews.slice(0, 6);
 
-    // 5 most recent news
     const mostRecentNews = await News.find({})
       .sort({ createdAt: -1 })
-      .limit(5)
+      .limit(6)
       .populate('user', { username: 1, email: 1 });
 
-    // The last exclusive news
     const lastExclusiveNews = await News.findOne({ exclusive: true })
       .sort({ createdAt: -1 })
       .populate('user', { username: 1, email: 1 });
 
-    // 2 random news from the category 'esporte'
     const randomEsporteNews = await News.aggregate([
       { $match: { category: 'esporte' } },
-      { $sample: { size: 2 } },
+      { $sample: { size: 4 } },
     ]);
 
-    // 2 random news from the category 'moda'
     const randomModaNews = await News.aggregate([
       { $match: { category: 'moda' } },
-      { $sample: { size: 2 } },
+      { $sample: { size: 4 } },
     ]);
 
     response.status(200).json({
