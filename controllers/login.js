@@ -47,7 +47,7 @@ router.get('/user', userExtractor, async (request, response) => {
 });
 
 //USER REGISTER
-router.post('/', async (request, response) => {
+router.post('/register', async (request, response) => {
   const { username, email, password } = request.body;
 
   if (!username || !email || !password) {
