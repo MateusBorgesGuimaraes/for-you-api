@@ -41,6 +41,7 @@ router.post('/', userExtractor, async (request, response) => {
       news: body.news,
     });
     const savedComment = await comment.save();
+
     const news = await News.findById(body.news);
     if (!news) {
       return response.status(404).json({ error: 'news not found' });
@@ -71,7 +72,7 @@ router.delete('/:id', userExtractor, async (request, response) => {
   }
   const deletedComment = await Comment.findByIdAndDelete(request.params.id);
   logger.info(`comment ${deletedComment.content} deleted`);
-  response.status(204).end();
+  response.status(204).json({ message: 'Comentário deletado com sucesso' });
 });
 
 module.exports = router;
