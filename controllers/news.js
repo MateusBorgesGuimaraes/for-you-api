@@ -36,19 +36,28 @@ router.get('/custom', async (request, response) => {
     const randomEsporteNews = await News.aggregate([
       { $match: { category: 'esporte' } },
       { $sample: { size: 4 } },
-    ]);
+    ]).exec();
 
     const randomModaNews = await News.aggregate([
       { $match: { category: 'moda' } },
       { $sample: { size: 4 } },
-    ]);
+    ]).exec();
+
+    const transformId = (newsArray) => {
+      return newsArray.map((news) => {
+        news.id = news._id.toString();
+        delete news._id;
+        delete news.__v;
+        return news;
+      });
+    };
 
     response.status(200).json({
       limitedRelevantNews,
       mostRecentNews,
       lastExclusiveNews,
-      randomEsporteNews,
-      randomModaNews,
+      randomEsporteNews: transformId(randomEsporteNews),
+      randomModaNews: transformId(randomModaNews),
     });
   } catch (error) {
     logger.error(error.message);
@@ -83,9 +92,12 @@ router.get('/', async (request, response) => {
 
 //GET ONE NEWS
 router.get('/:id', async (request, response) => {
+  if (!request.params.id) {
+    return response.status(400).json({ error: 'News not found' });
+  }
   const news = await News.findById(request.params.id).populate({
     path: 'comments',
-    select: 'content likes user',
+    select: 'content likes user createdAt',
     populate: {
       path: 'user',
       select: 'username email',
