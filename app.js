@@ -6,6 +6,7 @@ const cors = require('cors');
 const loginRouter = require('./controllers/login');
 const NewsRouter = require('./controllers/news');
 const CommentRouter = require('./controllers/comment');
+const UserRouter = require('./controllers/user');
 const middleware = require('./utils/middleware');
 const logger = require('./utils/logger');
 const mongoose = require('mongoose');
@@ -31,6 +32,7 @@ app.use(middleware.requestLogger);
 // app.use('/api/users', usersRouter);
 app.use('/api/login', loginRouter);
 app.use('/api/news', NewsRouter);
+app.use('/api/user', UserRouter);
 app.use('/api/comments', CommentRouter);
 
 app.use(middleware.unknownEndpoint);

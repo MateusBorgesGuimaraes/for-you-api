@@ -66,8 +66,8 @@ router.get('/custom', async (request, response) => {
 });
 
 // GET ALL NEWS WHIT PAGINATION
-router.get('/', async (request, response) => {
-  const { page = 1, limit = 10 } = request.query;
+router.get('/category', async (request, response) => {
+  const { page = 1, limit = 12 } = request.query;
 
   try {
     const news = await News.find({})

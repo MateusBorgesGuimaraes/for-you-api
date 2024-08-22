@@ -75,4 +75,27 @@ router.delete('/:id', userExtractor, async (request, response) => {
   response.status(204).json({ message: 'Comentário deletado com sucesso' });
 });
 
+// MANAGE COMMENT LIKES
+router.put('/:id/like', userExtractor, async (request, response) => {
+  const user = request.user;
+  if (!user) {
+    return response.status(401).json({ error: 'token missing or invalid' });
+  }
+
+  const comment = await Comment.findById(request.params.id);
+  if (!comment) {
+    return response.status(404).json({ error: 'comment not found' });
+  }
+
+  const liked = comment.likes.includes(user.id);
+  if (liked) {
+    comment.likes.pull(user.id);
+  } else {
+    comment.likes.push(user.id);
+  }
+
+  await comment.save();
+  response.status(200).json(comment.likes);
+});
+
 module.exports = router;
