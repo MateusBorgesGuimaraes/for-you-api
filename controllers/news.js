@@ -265,4 +265,50 @@ router.get('/category/:category', async (request, response) => {
   }
 });
 
+// INCREMENT NEWS VIEWS
+router.put('/:id/view', async (request, response) => {
+  try {
+    const news = await News.findByIdAndUpdate(
+      request.params.id,
+      { $inc: { views: 1 } },
+      { new: true },
+    );
+
+    if (!news) {
+      return response.status(404).json({ error: 'news not found' });
+    }
+
+    response.status(200).json(news);
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+});
+
+// MANAGE NEWS LIKES
+router.put('/:id/like', userExtractor, async (request, response) => {
+  const userId = request.user._id;
+
+  try {
+    const news = await News.findById(request.params.id);
+
+    if (!news) {
+      return response.status(404).json({ error: 'news not found' });
+    }
+
+    const liked = news.likes.includes(userId);
+
+    if (liked) {
+      news.likes.pull(userId);
+    } else {
+      news.likes.push(userId);
+    }
+
+    await news.save();
+
+    response.status(200).json(news);
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
