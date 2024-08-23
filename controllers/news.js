@@ -125,15 +125,18 @@ router.post('/', userExtractor, async (request, response) => {
 
   const body = request.body;
 
+  console.log('passou aqui', body);
+
   if (
-    !body.title ||
-    !body.description ||
-    !body.content ||
-    !body.author ||
-    !body.image
+    body.title == null ||
+    body.description == null ||
+    body.content == null ||
+    body.author == null ||
+    body.image == null
   ) {
     return response.status(400).json({ error: 'all fields are required' });
   }
+
   const categorias = [
     'cultura',
     'moda',
